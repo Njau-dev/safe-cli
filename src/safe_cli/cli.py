@@ -83,7 +83,6 @@ def main(
     try:
         parsed = parser.parse(command_str)
 
-        # For now, just show what we parsed (Day 1 deliverable)
         if dry_run:
             console.print("[bold cyan]Dry run mode - Command analysis:[/bold cyan]")
 
