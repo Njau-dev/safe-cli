@@ -3,9 +3,9 @@ Tests for CLI interface.
 """
 
 import pytest
-from typer.testing import CliRunner
-from safe_cli.cli import app
 from safe_cli import __version__
+from safe_cli.cli import app
+from typer.testing import CliRunner
 
 
 class TestCLI:

@@ -2,7 +2,6 @@
 CLI entry point for safe-cli.
 """
 
-import sys
 from typing import List, Optional
 
 import typer
@@ -94,7 +93,7 @@ def main(
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":

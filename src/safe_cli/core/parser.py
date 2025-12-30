@@ -19,7 +19,21 @@ class ParsedCommand:
 
     def has_flag(self, flag: str) -> bool:
         """Check if command has a specific flag."""
-        return flag in self.flags or any(f.startswith(flag) for f in self.flags)
+        # Direct match or startswith handles flags like '--output=file'
+        if flag in self.flags or any(f.startswith(flag) for f in self.flags):
+            return True
+
+        # Support combined short flags (e.g., '-rf' should match '-r' and '-f')
+        # Only apply this logic for single-dash short flags like '-f'
+        if flag.startswith("-") and not flag.startswith("--") and len(flag) == 2:
+            short = flag[1]
+            for f in self.flags:
+                if f.startswith("-") and not f.startswith("--"):
+                    # skip lone '-' and negative numbers
+                    if len(f) > 1 and short in f[1:]:
+                        return True
+
+        return False
 
     def has_any_flag(self, flags: List[str]) -> bool:
         """Check if command has any of the specified flags."""
@@ -66,7 +80,7 @@ class CommandParser:
         try:
             tokens = shlex.split(command)
         except ValueError as e:
-            raise ValueError(f"Invalid command syntax: {e}")
+            raise ValueError(f"Invalid command syntax: {e}") from e
 
         if not tokens:
             raise ValueError("Command produced no tokens")
