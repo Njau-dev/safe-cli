@@ -3,9 +3,9 @@ Tests for CLI interface.
 """
 
 import pytest
-from safe_cli import __version__
-from safe_cli.cli import app
 from typer.testing import CliRunner
+from safe_cli.cli import app
+from safe_cli import __version__
 
 
 class TestCLI:
@@ -53,6 +53,8 @@ class TestCLI:
 
         assert result.exit_code == 0
         assert "ls -la" in result.stdout
+        # Should show analysis now
+        assert "Danger Level:" in result.stdout
 
     def test_command_with_flags(self, runner: CliRunner) -> None:
         """Test command with multiple flags."""
@@ -60,13 +62,16 @@ class TestCLI:
 
         assert result.exit_code == 0
         assert "rm -rf /tmp/test" in result.stdout
+        # Should show danger analysis
+        assert "Danger Level:" in result.stdout
+        assert "HIGH" in result.stdout or "CRITICAL" in result.stdout
 
     def test_dry_run_flag(self, runner: CliRunner) -> None:
         """Test --dry-run flag."""
         result = runner.invoke(app, ["--dry-run", "rm", "-rf", "/tmp"])
 
         assert result.exit_code == 0
-        assert "Dry run mode" in result.stdout
+        assert "Dry Run Mode" in result.stdout
         assert "rm -rf /tmp" in result.stdout
 
     def test_dry_run_short_flag(self, runner: CliRunner) -> None:
@@ -74,7 +79,7 @@ class TestCLI:
         result = runner.invoke(app, ["-d", "ls"])
 
         assert result.exit_code == 0
-        assert "Dry run mode" in result.stdout
+        assert "Dry Run Mode" in result.stdout
 
     def test_yes_flag(self, runner: CliRunner) -> None:
         """Test --yes flag (for future use)."""

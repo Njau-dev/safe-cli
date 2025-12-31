@@ -9,6 +9,7 @@ from rich.console import Console
 
 from safe_cli import __version__
 from safe_cli.core.parser import CommandParser
+from safe_cli.core.analyzer import CommandAnalyzer
 
 app = typer.Typer(
     name="safe",
@@ -22,8 +23,7 @@ def version_callback(value: bool) -> None:
     """Show version and exit."""
     if value:
         console.print(
-            f"[bold blue]safe-cli[/bold blue] version [green]{__version__}[/green]"
-        )
+            f"[bold blue]safe-cli[/bold blue] version [green]{__version__}[/green]")
         raise typer.Exit()
 
 
@@ -77,23 +77,52 @@ def main(
     # Join command parts
     command_str = " ".join(command)
 
-    # Parse the command
+    # Parse and analyze the command
     parser = CommandParser()
     try:
         parsed = parser.parse(command_str)
+        analyzer = CommandAnalyzer()
+        result = analyzer.analyze(parsed)
 
+        # Show analysis
         if dry_run:
-            console.print("[bold cyan]Dry run mode - Command analysis:[/bold cyan]")
+            console.print(
+                "[bold cyan]🔍 Dry Run Mode - Analysis Only[/bold cyan]\n")
 
-        console.print(f"[dim]Command:[/dim] {command_str}")
-        console.print(f"[dim]Parsed:[/dim] {parsed}")
+        # Show danger level with color and emoji
+        danger_color = result.danger_level.color
+        danger_emoji = result.danger_level.emoji
+        console.print(f"[bold]Command:[/bold] {command_str}")
+        console.print(
+            f"[bold]Danger Level:[/bold] [{danger_color}]{result.danger_level.name} {danger_emoji}[/{danger_color}]\n")
 
-        # TODO: Day 2+ - Analyze, prompt, execute
-        console.print("\n[yellow]⚠️  Analysis and execution coming in Day 2+[/yellow]")
+        # Show primary warning
+        if result.danger_level != result.danger_level.SAFE:
+            console.print(
+                f"[{danger_color}]⚠️  {result.primary_warning}[/{danger_color}]\n")
+
+        # Show suggestions if any
+        if result.suggestions:
+            console.print("[bold cyan]💡 Suggestions:[/bold cyan]")
+            for suggestion in result.suggestions:
+                console.print(f"  • {suggestion}")
+            console.print()
+
+        # Show safe alternatives if any
+        if result.safe_alternatives:
+            console.print("[bold green]✅ Safe Alternatives:[/bold green]")
+            for alt in result.safe_alternatives:
+                console.print(f"  → {alt}")
+            console.print()
+
+        # TODO: Day 4 - Interactive prompt and execution
+        if not dry_run:
+            console.print(
+                "[yellow]💬 Interactive prompts and execution coming in Day 4[/yellow]")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1) from e
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":
