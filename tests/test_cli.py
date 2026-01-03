@@ -71,8 +71,11 @@ class TestCLI:
         result = runner.invoke(app, ["--dry-run", "rm", "-rf", "/tmp"])
 
         assert result.exit_code == 0
+
+
         assert "Dry Run Mode" in result.stdout
         assert "rm -rf /tmp" in result.stdout
+        assert "no command was executed" in result.stdout.lower()
 
     def test_dry_run_short_flag(self, runner: CliRunner) -> None:
         """Test -d flag for dry run."""

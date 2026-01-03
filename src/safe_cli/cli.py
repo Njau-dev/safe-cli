@@ -8,8 +8,11 @@ import typer
 from rich.console import Console
 
 from safe_cli import __version__
-from safe_cli.core.parser import CommandParser
 from safe_cli.core.analyzer import CommandAnalyzer
+from safe_cli.core.executor import CommandExecutor
+from safe_cli.core.parser import CommandParser
+from safe_cli.ui.display import DisplayFormatter
+from safe_cli.ui.prompts import PromptResponse, UserPrompt
 
 app = typer.Typer(
     name="safe",
@@ -23,7 +26,8 @@ def version_callback(value: bool) -> None:
     """Show version and exit."""
     if value:
         console.print(
-            f"[bold blue]safe-cli[/bold blue] version [green]{__version__}[/green]")
+            f"[bold blue]safe-cli[/bold blue] version [green]{__version__}[/green]"
+        )
         raise typer.Exit()
 
 
@@ -74,54 +78,91 @@ def main(
         console.print("\nRun [bold]safe --help[/bold] for more information.")
         raise typer.Exit(1)
 
-    # Join command parts
+    # Initialize components
     command_str = " ".join(command)
-
-    # Parse and analyze the command
     parser = CommandParser()
+    analyzer = CommandAnalyzer()
+    display = DisplayFormatter(console)
+    prompt = UserPrompt(console)
+    executor = CommandExecutor()
+
     try:
+        # Parse command
         parsed = parser.parse(command_str)
-        analyzer = CommandAnalyzer()
+
+        # Analyze for risks
         result = analyzer.analyze(parsed)
 
-        # Show analysis
+        # Display analysis
+        display.display_analysis(result, dry_run=dry_run)
+
+        # If dry run, stop here
         if dry_run:
-            console.print(
-                "[bold cyan]🔍 Dry Run Mode - Analysis Only[/bold cyan]\n")
+            display.display_info("Dry run complete - no command was executed.")
+            raise typer.Exit(0)
 
-        # Show danger level with color and emoji
-        danger_color = result.danger_level.color
-        danger_emoji = result.danger_level.emoji
-        console.print(f"[bold]Command:[/bold] {command_str}")
-        console.print(
-            f"[bold]Danger Level:[/bold] [{danger_color}]{result.danger_level.name} {danger_emoji}[/{danger_color}]\n")
+        # Get user decision
+        response = prompt.confirm_execution(result, skip_prompt=yes)
 
-        # Show primary warning
-        if result.danger_level != result.danger_level.SAFE:
-            console.print(
-                f"[{danger_color}]⚠️  {result.primary_warning}[/{danger_color}]\n")
+        # Handle user response
+        if response == PromptResponse.ABORT:
+            display.display_execution_aborted()
+            raise typer.Exit(0)
 
-        # Show suggestions if any
-        if result.suggestions:
-            console.print("[bold cyan]💡 Suggestions:[/bold cyan]")
-            for suggestion in result.suggestions:
-                console.print(f"  • {suggestion}")
-            console.print()
+        elif response == PromptResponse.VIEW_ALTERNATIVE:
+            # Show alternatives and let user choose
+            if result.safe_alternatives:
+                use_alt, chosen = prompt.choose_alternative(
+                    result.safe_alternatives)
 
-        # Show safe alternatives if any
-        if result.safe_alternatives:
-            console.print("[bold green]✅ Safe Alternatives:[/bold green]")
-            for alt in result.safe_alternatives:
-                console.print(f"  → {alt}")
-            console.print()
+                if chosen:
+                    # User chose an alternative
+                    console.print()
+                    display.display_comparison(command_str, chosen)
+                    display.display_execution_start(chosen)
+                    exec_result = executor.execute(chosen)
+                elif use_alt is False and chosen is None:
+                    # User chose to abort
+                    display.display_execution_aborted()
+                    raise typer.Exit(0)
+                else:
+                    # User chose original (shouldn't happen, but handle it)
+                    display.display_execution_start(command_str)
+                    exec_result = executor.execute(command_str)
+            else:
+                # No alternatives available (shouldn't reach here)
+                display.display_execution_start(command_str)
+                exec_result = executor.execute(command_str)
 
-        # TODO: Day 4 - Interactive prompt and execution
-        if not dry_run:
-            console.print(
-                "[yellow]💬 Interactive prompts and execution coming in Day 4[/yellow]")
+        else:  # PromptResponse.CONTINUE
+            # Execute original command
+            display.display_execution_start(command_str)
+            exec_result = executor.execute(command_str)
 
+        # Display execution results
+        if exec_result.stdout:
+            console.print(exec_result.stdout, end="")
+        if exec_result.stderr:
+            console.print(f"[red]{exec_result.stderr}[/red]", end="")
+
+        # Show completion status
+        display.display_execution_complete(exec_result.success)
+
+       # Exit with command's return code
+        raise typer.Exit(exec_result.return_code)
+
+    except ValueError as e:
+        display.display_error(str(e))
+        raise typer.Exit(1)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")
+        raise typer.Exit(130)
+    except typer.Exit:
+        # Re-raise typer exits (normal flow)
+        raise
     except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
+        # Only show unexpected errors that aren't normal exits
+        display.display_error(f"Unexpected error: {e}")
         raise typer.Exit(1)
 
 
