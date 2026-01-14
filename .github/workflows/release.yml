@@ -1,0 +1,39 @@
+name: Release to PyPI
+
+on:
+  push:
+    branches: [production]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Configure PyPI token
+        run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run tests
+        run: poetry run pytest
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to PyPI
+        run: poetry publish
