@@ -1,0 +1,37 @@
+name: Safe CLI CI
+
+on:
+  push:
+    branches: [master, production]
+  pull_request:
+    branches: [master, production]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Lint (ruff)
+        run: poetry run ruff src tests
+
+      - name: Format check (black)
+        run: poetry run black --check src tests
+
+      - name: Type check (mypy)
+        run: poetry run mypy src/safe_cli
+
+      - name: Run tests
+        run: poetry run pytest

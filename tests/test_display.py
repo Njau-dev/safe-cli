@@ -6,9 +6,8 @@ from io import StringIO
 
 import pytest
 from rich.console import Console
-
 from safe_cli.core.analyzer import AnalysisResult
-from safe_cli.core.parser import CommandParser, ParsedCommand
+from safe_cli.core.parser import ParsedCommand
 from safe_cli.ui.display import DisplayFormatter
 from safe_cli.utils.constants import DangerLevel
 
@@ -29,8 +28,7 @@ class TestDisplayFormatter:
     @pytest.fixture
     def safe_result(self) -> AnalysisResult:
         """Create a safe analysis result."""
-        cmd = ParsedCommand(
-            "echo test", ["echo", "test"], "echo", ["test"], [])
+        cmd = ParsedCommand("echo test", ["echo", "test"], "echo", ["test"], [])
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.SAFE,
@@ -44,15 +42,13 @@ class TestDisplayFormatter:
     @pytest.fixture
     def dangerous_result(self) -> AnalysisResult:
         """Create a dangerous analysis result."""
-        cmd = ParsedCommand(
-            "rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
+        cmd = ParsedCommand("rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.CRITICAL,
             matches=[],
             primary_warning="This will delete everything!",
-            all_warnings=["This will delete everything!",
-                          "No recovery possible"],
+            all_warnings=["This will delete everything!", "No recovery possible"],
             suggestions=["Don't do this", "Use interactive mode"],
             safe_alternatives=["rm -i -rf /"],
         )
@@ -158,9 +154,7 @@ class TestDisplayFormatter:
         output = console.file.getvalue()
         assert "abort" in output.lower()
 
-    def test_display_error(
-        self, formatter: DisplayFormatter, console: Console
-    ) -> None:
+    def test_display_error(self, formatter: DisplayFormatter, console: Console) -> None:
         """Test displaying error message."""
         formatter.display_error("Test error message")
 
@@ -168,9 +162,7 @@ class TestDisplayFormatter:
         assert "Error" in output or "error" in output
         assert "Test error message" in output
 
-    def test_display_info(
-        self, formatter: DisplayFormatter, console: Console
-    ) -> None:
+    def test_display_info(self, formatter: DisplayFormatter, console: Console) -> None:
         """Test displaying info message."""
         formatter.display_info("Test info message")
 

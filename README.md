@@ -75,12 +75,33 @@ This will overwrite disk with root privileges - DATA LOSS IMMINENT
 → Abort / Continue / View Safe Alternative?
 ```
 
-## Command Coverage (MVP v0.1.0)
+## Command Coverage (v0.1.0)
 
-- File operations: `rm`, `mv`, `cp`, `chmod`, `chown`
-- System commands: `sudo`, `dd`, `kill`, `killall`
-- Git operations: `git reset`, `git push --force`
-- Docker operations: `docker system prune`, `docker rm`
+### Filesystem Operations
+- `rm` - File deletion with recursive and force flags
+- `mv` - File moving with force overwrite detection
+- `cp` - File copying with recursive operations
+- `chmod` - Permission changes (detects dangerous 777/666)
+- `chown` - Ownership changes on system files
+
+### Git Operations
+- `git reset` - Detects --hard and commit resets
+- `git push --force` - Warns about force pushes, especially to main/master
+- `git clean` - Prevents accidental deletion of untracked files
+- `git branch -D` - Warns about force-deleting unmerged branches
+
+### Docker Operations
+- `docker system prune` - Detects --all and --volumes flags
+- `docker rm` - Container removal with force and volume flags
+- `docker rmi` - Image removal warnings
+- `docker volume prune` - Critical volume data deletion warning
+
+### System Commands
+- `sudo` - Detects dangerous command combinations with root
+- `dd` - Warns about disk device overwrites
+- `kill/killall` - Especially with -9 (SIGKILL) flag
+- `shutdown/reboot` - System restart warnings
+- `mkfs` - Filesystem formatting (data destruction)
 
 ## Development
 
@@ -145,6 +166,5 @@ Part of the developer safety toolkit:
 - [safe-cli](https://github.com/Njau-dev/safe-cli) - Command safety (you are here)
 - Coming soon: `cleaner`, `uterm`, `envdoctor`
 
----
 
 **Safety first, always.** 🛡️

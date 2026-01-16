@@ -6,12 +6,31 @@ from typing import List, Optional
 
 from safe_cli.core.parser import ParsedCommand
 from safe_cli.rules.base import Rule, RuleMatch
+from safe_cli.rules.docker import (
+    DockerRmiRule,
+    DockerRmRule,
+    DockerSystemPruneRule,
+    DockerVolumePruneRule,
+)
 from safe_cli.rules.filesystem import (
     ChmodRule,
     ChownRule,
     CpRule,
     MvRule,
     RmRule,
+)
+from safe_cli.rules.git import (
+    GitBranchDeleteRule,
+    GitCleanRule,
+    GitPushForceRule,
+    GitResetRule,
+)
+from safe_cli.rules.system import (
+    DdRule,
+    KillRule,
+    MkfsRule,
+    ShutdownRule,
+    SudoRule,
 )
 from safe_cli.utils.constants import DangerLevel
 
@@ -33,6 +52,25 @@ class RuleRegistry:
         self.register(ChmodRule())
         self.register(ChownRule())
 
+        # Git rules
+        self.register(GitResetRule())
+        self.register(GitPushForceRule())
+        self.register(GitCleanRule())
+        self.register(GitBranchDeleteRule())
+
+        # Docker rules
+        self.register(DockerSystemPruneRule())
+        self.register(DockerRmRule())
+        self.register(DockerRmiRule())
+        self.register(DockerVolumePruneRule())
+
+        # System rules
+        self.register(SudoRule())
+        self.register(DdRule())
+        self.register(KillRule())
+        self.register(ShutdownRule())
+        self.register(MkfsRule())
+
     def register(self, rule: Rule) -> None:
         """
         Register a new rule.
@@ -45,8 +83,7 @@ class RuleRegistry:
 
         # Check for duplicate names
         if any(r.name == rule.name for r in self._rules):
-            raise ValueError(
-                f"Rule with name '{rule.name}' already registered")
+            raise ValueError(f"Rule with name '{rule.name}' already registered")
 
         self._rules.append(rule)
 

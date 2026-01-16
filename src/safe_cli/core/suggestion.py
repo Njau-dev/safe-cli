@@ -8,7 +8,6 @@ from safe_cli.core.parser import ParsedCommand
 from safe_cli.utils.constants import (
     FORCE_FLAGS,
     INTERACTIVE_FLAGS,
-    RECURSIVE_FLAGS,
 )
 
 
@@ -121,9 +120,7 @@ class SafeAlternativeGenerator:
         # Return None - suggestions will guide user
         return None
 
-    def generate_multiple(
-        self, command: ParsedCommand, count: int = 3
-    ) -> List[str]:
+    def generate_multiple(self, command: ParsedCommand, count: int = 3) -> List[str]:
         """
         Generate multiple safer alternatives.
 
@@ -145,11 +142,13 @@ class SafeAlternativeGenerator:
         if command.command == "rm" and len(alternatives) < count:
             # Suggest using trash instead
             alternatives.append(
-                f"# Move to trash instead: mv {' '.join(command.args)} ~/.Trash/")
+                f"# Move to trash instead: mv {' '.join(command.args)} ~/.Trash/"
+            )
 
         if command.command == "chmod" and len(alternatives) < count:
             # Suggest more specific permissions
             alternatives.append(
-                "# Use more specific permissions: 644 for files, 755 for executables")
+                "# Use more specific permissions: 644 for files, 755 for executables"
+            )
 
         return alternatives[:count]

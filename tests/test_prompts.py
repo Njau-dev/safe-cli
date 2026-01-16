@@ -6,7 +6,6 @@ from io import StringIO
 
 import pytest
 from rich.console import Console
-
 from safe_cli.core.analyzer import AnalysisResult
 from safe_cli.core.parser import ParsedCommand
 from safe_cli.ui.prompts import PromptResponse, UserPrompt
@@ -29,8 +28,7 @@ class TestUserPrompt:
     @pytest.fixture
     def safe_result(self) -> AnalysisResult:
         """Create safe analysis result."""
-        cmd = ParsedCommand(
-            "echo test", ["echo", "test"], "echo", ["test"], [])
+        cmd = ParsedCommand("echo test", ["echo", "test"], "echo", ["test"], [])
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.SAFE,
@@ -58,8 +56,7 @@ class TestUserPrompt:
     @pytest.fixture
     def medium_result(self) -> AnalysisResult:
         """Create medium danger result."""
-        cmd = ParsedCommand(
-            "rm -r /tmp", ["rm", "-r", "/tmp"], "rm", ["/tmp"], ["-r"])
+        cmd = ParsedCommand("rm -r /tmp", ["rm", "-r", "/tmp"], "rm", ["/tmp"], ["-r"])
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.MEDIUM,
@@ -74,7 +71,8 @@ class TestUserPrompt:
     def high_result(self) -> AnalysisResult:
         """Create high danger result."""
         cmd = ParsedCommand(
-            "rm -rf /tmp", ["rm", "-rf", "/tmp"], "rm", ["/tmp"], ["-rf"])
+            "rm -rf /tmp", ["rm", "-rf", "/tmp"], "rm", ["/tmp"], ["-rf"]
+        )
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.HIGH,
@@ -88,8 +86,7 @@ class TestUserPrompt:
     @pytest.fixture
     def critical_result(self) -> AnalysisResult:
         """Create critical danger result."""
-        cmd = ParsedCommand(
-            "rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
+        cmd = ParsedCommand("rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
         return AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.CRITICAL,
@@ -133,11 +130,8 @@ class TestUserPrompt:
         assert PromptResponse.VIEW_ALTERNATIVE
         assert PromptResponse.USE_ALTERNATIVE
 
-    def test_choose_alternative_with_alternatives(
-        self, prompt: UserPrompt
-    ) -> None:
+    def test_choose_alternative_with_alternatives(self, prompt: UserPrompt) -> None:
         """Test choosing from alternatives."""
-        alternatives = ["alt1", "alt2", "alt3"]
 
         # Can't easily test interactive input, but verify method exists
         assert hasattr(prompt, "choose_alternative")

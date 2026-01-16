@@ -49,7 +49,9 @@ class TestCommandExecutor:
         assert not result.success
         assert result.return_code != 0
 
-    def test_execution_result_command_preserved(self, executor: CommandExecutor) -> None:
+    def test_execution_result_command_preserved(
+        self, executor: CommandExecutor
+    ) -> None:
         """Test that executed command is preserved in result."""
         cmd = "echo test"
         result = executor.execute(cmd)

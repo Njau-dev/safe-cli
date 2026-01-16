@@ -152,9 +152,7 @@ class CommandAnalyzer:
             List of unique suggestions
         """
         suggestions = [
-            match.suggestion
-            for match in matches
-            if match.suggestion is not None
+            match.suggestion for match in matches if match.suggestion is not None
         ]
         # Remove duplicates while preserving order
         seen = set()

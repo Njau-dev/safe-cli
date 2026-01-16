@@ -112,8 +112,7 @@ def main(
         elif response == PromptResponse.VIEW_ALTERNATIVE:
             # Show alternatives and let user choose
             if result.safe_alternatives:
-                use_alt, chosen = prompt.choose_alternative(
-                    result.safe_alternatives)
+                use_alt, chosen = prompt.choose_alternative(result.safe_alternatives)
 
                 if chosen:
                     # User chose an alternative
@@ -148,22 +147,22 @@ def main(
         # Show completion status
         display.display_execution_complete(exec_result.success)
 
-       # Exit with command's return code
+        # Exit with command's return code
         raise typer.Exit(exec_result.return_code)
 
     except ValueError as e:
         display.display_error(str(e))
-        raise typer.Exit(1)
-    except KeyboardInterrupt:
+        raise typer.Exit(1) from e
+    except KeyboardInterrupt as e:
         console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")
-        raise typer.Exit(130)
+        raise typer.Exit(130) from e
     except typer.Exit:
         # Re-raise typer exits (normal flow)
         raise
     except Exception as e:
         # Only show unexpected errors that aren't normal exits
         display.display_error(f"Unexpected error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":

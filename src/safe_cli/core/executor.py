@@ -35,7 +35,7 @@ class CommandExecutor:
     def __init__(self, shell: bool = True) -> None:
         """
         Initialize command executor.
-        
+
         Args:
             shell: Whether to execute via shell
         """
@@ -44,11 +44,11 @@ class CommandExecutor:
     def execute(self, command: str, timeout: Optional[int] = None) -> ExecutionResult:
         """
         Execute a command safely.
-        
+
         Args:
             command: Command string to execute
             timeout: Timeout in seconds (None for no timeout)
-            
+
         Returns:
             ExecutionResult with command output and status
         """
@@ -95,11 +95,11 @@ class CommandExecutor:
     ) -> ExecutionResult:
         """
         Execute command with real-time output streaming.
-        
+
         Args:
             command: Command to execute
             timeout: Timeout in seconds
-            
+
         Returns:
             ExecutionResult with final status
         """
@@ -149,10 +149,10 @@ class CommandExecutor:
     def dry_run(self, command: str) -> ExecutionResult:
         """
         Simulate command execution without actually running it.
-        
+
         Args:
             command: Command to simulate
-            
+
         Returns:
             ExecutionResult indicating dry run
         """
