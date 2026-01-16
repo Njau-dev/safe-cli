@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "safe-cli"
+name = "safectl"
 version = "0.1.0"
 description = "Know before you run - A safety wrapper for dangerous shell commands"
 authors = ["Njau-dev <jeffnjau01@gmail.com>"]
@@ -37,7 +37,7 @@ ruff = "^0.3.0"
 mypy = "^1.8.0"
 
 [tool.poetry.scripts]
-safe = "safe_cli.cli:app"
+safectl = "safe_cli.cli:app"
 
 [build-system]
 requires = ["poetry-core"]
