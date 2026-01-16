@@ -2,11 +2,10 @@
 Tests for CLI interface.
 """
 
-from unittest import result
 import pytest
-from typer.testing import CliRunner
-from safe_cli.cli import app
 from safe_cli import __version__
+from safe_cli.cli import app
+from typer.testing import CliRunner
 
 
 class TestCLI:
@@ -69,7 +68,6 @@ class TestCLI:
         result = runner.invoke(app, ["--dry-run", "rm", "-rf", "/tmp"])
 
         assert result.exit_code == 0
-
 
         assert "Dry Run Mode" in result.stdout
         assert "rm -rf /tmp" in result.stdout

@@ -24,26 +24,36 @@ class TestDockerSystemPruneRule:
     def rule(self) -> DockerSystemPruneRule:
         return DockerSystemPruneRule()
 
-    def test_matches_system_prune(self, parser: CommandParser, rule: DockerSystemPruneRule) -> None:
+    def test_matches_system_prune(
+        self, parser: CommandParser, rule: DockerSystemPruneRule
+    ) -> None:
         cmd = parser.parse("docker system prune")
         assert rule.matches(cmd)
 
-    def test_prune_all_volumes_critical(self, parser: CommandParser, rule: DockerSystemPruneRule) -> None:
+    def test_prune_all_volumes_critical(
+        self, parser: CommandParser, rule: DockerSystemPruneRule
+    ) -> None:
         cmd = parser.parse("docker system prune -a --volumes")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.CRITICAL
 
-    def test_prune_all_high(self, parser: CommandParser, rule: DockerSystemPruneRule) -> None:
+    def test_prune_all_high(
+        self, parser: CommandParser, rule: DockerSystemPruneRule
+    ) -> None:
         cmd = parser.parse("docker system prune -a")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
 
-    def test_prune_volumes_high(self, parser: CommandParser, rule: DockerSystemPruneRule) -> None:
+    def test_prune_volumes_high(
+        self, parser: CommandParser, rule: DockerSystemPruneRule
+    ) -> None:
         cmd = parser.parse("docker system prune --volumes")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
 
-    def test_prune_basic_medium(self, parser: CommandParser, rule: DockerSystemPruneRule) -> None:
+    def test_prune_basic_medium(
+        self, parser: CommandParser, rule: DockerSystemPruneRule
+    ) -> None:
         cmd = parser.parse("docker system prune")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.MEDIUM
@@ -64,12 +74,16 @@ class TestDockerRmRule:
         cmd = parser.parse("docker rm container")
         assert rule.matches(cmd)
 
-    def test_rm_force_volumes_multiple_critical(self, parser: CommandParser, rule: DockerRmRule) -> None:
+    def test_rm_force_volumes_multiple_critical(
+        self, parser: CommandParser, rule: DockerRmRule
+    ) -> None:
         cmd = parser.parse("docker rm -fv container1 container2")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.CRITICAL
 
-    def test_rm_force_multiple_high(self, parser: CommandParser, rule: DockerRmRule) -> None:
+    def test_rm_force_multiple_high(
+        self, parser: CommandParser, rule: DockerRmRule
+    ) -> None:
         cmd = parser.parse("docker rm -f container1 container2")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
@@ -101,11 +115,15 @@ class TestDockerRmiRule:
     def rule(self) -> DockerRmiRule:
         return DockerRmiRule()
 
-    def test_matches_docker_rmi(self, parser: CommandParser, rule: DockerRmiRule) -> None:
+    def test_matches_docker_rmi(
+        self, parser: CommandParser, rule: DockerRmiRule
+    ) -> None:
         cmd = parser.parse("docker rmi image")
         assert rule.matches(cmd)
 
-    def test_rmi_force_multiple_high(self, parser: CommandParser, rule: DockerRmiRule) -> None:
+    def test_rmi_force_multiple_high(
+        self, parser: CommandParser, rule: DockerRmiRule
+    ) -> None:
         cmd = parser.parse("docker rmi -f image1 image2")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
@@ -115,7 +133,9 @@ class TestDockerRmiRule:
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.MEDIUM
 
-    def test_rmi_multiple_medium(self, parser: CommandParser, rule: DockerRmiRule) -> None:
+    def test_rmi_multiple_medium(
+        self, parser: CommandParser, rule: DockerRmiRule
+    ) -> None:
         cmd = parser.parse("docker rmi image1 image2 image3")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.MEDIUM
@@ -137,11 +157,15 @@ class TestDockerVolumePruneRule:
     def rule(self) -> DockerVolumePruneRule:
         return DockerVolumePruneRule()
 
-    def test_matches_volume_prune(self, parser: CommandParser, rule: DockerVolumePruneRule) -> None:
+    def test_matches_volume_prune(
+        self, parser: CommandParser, rule: DockerVolumePruneRule
+    ) -> None:
         cmd = parser.parse("docker volume prune")
         assert rule.matches(cmd)
 
-    def test_volume_prune_critical(self, parser: CommandParser, rule: DockerVolumePruneRule) -> None:
+    def test_volume_prune_critical(
+        self, parser: CommandParser, rule: DockerVolumePruneRule
+    ) -> None:
         cmd = parser.parse("docker volume prune -f")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.CRITICAL

@@ -1,15 +1,10 @@
 """
-Docstring for safe_cli.rules.git
-"""
-"""
 Git operation safety rules.
 """
 
-
-from safe_cli.utils.constants import DangerLevel, FORCE_FLAGS
-from safe_cli.rules.base import Rule, RuleMatch
-from typing import Optional
 from safe_cli.core.parser import ParsedCommand
+from safe_cli.rules.base import Rule, RuleMatch
+from safe_cli.utils.constants import DangerLevel
 
 
 class GitResetRule(Rule):
@@ -20,21 +15,16 @@ class GitResetRule(Rule):
 
     def matches(self, command: ParsedCommand) -> bool:
         """Check if command is git reset."""
-        return (
-            command.command == "git"
-            and "reset" in command.args
-        )
+        return command.command == "git" and "reset" in command.args
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze git reset command for dangers."""
         has_hard = "--hard" in command.flags
         has_soft = "--soft" in command.flags
-        has_mixed = "--mixed" in command.flags or (
-            not has_hard and not has_soft)
+        has_mixed = "--mixed" in command.flags or (not has_hard and not has_soft)
 
         # Check how far back we're resetting
-        has_head_ref = any(
-            "HEAD~" in arg or "HEAD^" in arg for arg in command.args)
+        has_head_ref = any("HEAD~" in arg or "HEAD^" in arg for arg in command.args)
 
         if has_hard:
             if has_head_ref:
@@ -55,7 +45,9 @@ class GitResetRule(Rule):
 
         elif has_mixed:
             danger_level = DangerLevel.MEDIUM
-            message = "This will unstage changes but keep them in your working directory."
+            message = (
+                "This will unstage changes but keep them in your working directory."
+            )
             suggestion = "Use 'git reset --soft' if you want to keep changes staged."
             safe_alternative = command.raw.replace("reset", "reset --soft")
 
@@ -113,7 +105,8 @@ class GitPushForceRule(Rule):
                 "Or better yet, avoid force pushing to main branches."
             )
             safe_alternative = command.raw.replace(
-                "--force", "--force-with-lease").replace("-f", "--force-with-lease")
+                "--force", "--force-with-lease"
+            ).replace("-f", "--force-with-lease")
 
         elif has_force_with_lease:
             danger_level = DangerLevel.MEDIUM
@@ -132,7 +125,8 @@ class GitPushForceRule(Rule):
             )
             suggestion = "Use --force-with-lease instead for safer forced pushes."
             safe_alternative = command.raw.replace(
-                "--force", "--force-with-lease").replace("-f", "--force-with-lease")
+                "--force", "--force-with-lease"
+            ).replace("-f", "--force-with-lease")
 
         return RuleMatch(
             rule_name=self.name,
@@ -151,10 +145,7 @@ class GitCleanRule(Rule):
 
     def matches(self, command: ParsedCommand) -> bool:
         """Check if command is git clean."""
-        return (
-            command.command == "git"
-            and "clean" in command.args
-        )
+        return command.command == "git" and "clean" in command.args
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze git clean for dangers."""
@@ -164,7 +155,8 @@ class GitCleanRule(Rule):
 
         # Combined flags like -fd, -fdx
         combined_flags = "".join(
-            [f for f in command.flags if f.startswith("-") and not f.startswith("--")])
+            [f for f in command.flags if f.startswith("-") and not f.startswith("--")]
+        )
         if "f" in combined_flags:
             has_force = True
         if "d" in combined_flags:
@@ -232,7 +224,9 @@ class GitBranchDeleteRule(Rule):
             "Force deleting a branch will remove it even if it contains unmerged changes. "
             "This could result in lost commits!"
         )
-        suggestion = "Use 'git branch -d' (lowercase) to safely delete only merged branches."
+        suggestion = (
+            "Use 'git branch -d' (lowercase) to safely delete only merged branches."
+        )
         safe_alternative = command.raw.replace("-D", "-d")
 
         return RuleMatch(

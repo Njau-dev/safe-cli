@@ -1,15 +1,10 @@
 """
-Docstring for safe_cli.rules.docker
-"""
-"""
 Docker operation safety rules.
 """
 
-
 from safe_cli.core.parser import ParsedCommand
-from typing import Optional
-from safe_cli.utils.constants import DangerLevel, FORCE_FLAGS
 from safe_cli.rules.base import Rule, RuleMatch
+from safe_cli.utils.constants import DangerLevel
 
 
 class DockerSystemPruneRule(Rule):
@@ -28,46 +23,78 @@ class DockerSystemPruneRule(Rule):
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze docker system prune for dangers."""
-        has_all = "-a" in command.flags or "--all" in command.flags
-        has_volumes = "--volumes" in command.flags
-        has_force = "-f" in command.flags or "--force" in command.flags
 
+        has_all = command.has_any_flag(["-a", "--all"])
+        has_volumes = "--volumes" in command.flags
+        has_force = command.has_any_flag(["-f", "--force"])
+
+        # Base danger from what will be deleted
         if has_all and has_volumes:
-            danger_level = DangerLevel.CRITICAL
-            message = (
+            base_level = DangerLevel.CRITICAL
+            base_message = (
                 "This will remove ALL unused containers, networks, images (both dangling and unused), "
                 "AND volumes. This includes data volumes which could contain important data!"
             )
-            suggestion = "Run without --volumes first, then manually clean volumes if needed."
-            safe_alternative = command.raw.replace("--volumes", "")
+            base_suggestion = (
+                "Run without --volumes first, then manually clean volumes if needed."
+            )
+            base_safe = command.raw.replace("--volumes", "").replace("--force", "")
 
         elif has_all:
-            danger_level = DangerLevel.HIGH
-            message = (
+            base_level = DangerLevel.HIGH
+            base_message = (
                 "This will remove ALL unused containers, networks, and images "
                 "(including non-dangling images). You may lose important images!"
             )
-            suggestion = "Run without -a/--all to only remove dangling images."
-            safe_alternative = command.raw.replace(
-                "-a", "").replace("--all", "")
+            base_suggestion = "Run without --all to only remove dangling images."
+            base_safe = command.raw.replace("--all", "").replace("--force", "")
 
         elif has_volumes:
-            danger_level = DangerLevel.HIGH
-            message = (
+            base_level = DangerLevel.HIGH
+            base_message = (
                 "This will remove unused volumes which may contain important data. "
                 "Volume data cannot be recovered!"
             )
-            suggestion = "List volumes first with 'docker volume ls' and remove specific ones."
-            safe_alternative = "docker volume ls"
+            base_suggestion = (
+                "List volumes first with 'docker volume ls' and remove specific ones."
+            )
+            base_safe = "docker volume ls"
 
         else:
-            danger_level = DangerLevel.MEDIUM
-            message = (
+            base_level = DangerLevel.MEDIUM
+            base_message = (
                 "This will remove unused containers, networks, and dangling images. "
                 "Active resources won't be affected."
             )
-            suggestion = "Review what will be removed with 'docker system df' first."
-            safe_alternative = None
+            base_suggestion = (
+                "Review what will be removed with 'docker system df' first."
+            )
+            base_safe = None
+
+        # Force flag makes everything more dangerous (no confirmation)
+        if has_force:
+            danger_level = (
+                DangerLevel.CRITICAL
+                if base_level == DangerLevel.HIGH
+                else DangerLevel.HIGH
+            )
+
+            message = (
+                base_message
+                + " The --force flag skips the confirmation prompt, making accidental data loss more likely."
+            )
+
+            suggestion = (
+                "Remove --force to review what will be deleted before proceeding."
+            )
+
+            safe_alternative = command.raw.replace("--force", "")
+
+        else:
+            danger_level = base_level
+            message = base_message
+            suggestion = base_suggestion
+            safe_alternative = base_safe  # type: ignore
 
         return RuleMatch(
             rule_name=self.name,
@@ -86,10 +113,7 @@ class DockerRmRule(Rule):
 
     def matches(self, command: ParsedCommand) -> bool:
         """Check if command is docker rm."""
-        return (
-            command.command == "docker"
-            and "rm" in command.args
-        )
+        return command.command == "docker" and "rm" in command.args
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze docker rm for dangers."""
@@ -108,7 +132,8 @@ class DockerRmRule(Rule):
         # Check if removing multiple containers or using wildcards
         container_args = [arg for arg in command.args if arg != "rm"]
         is_multiple = len(container_args) > 1 or any(
-            "*" in arg for arg in container_args)
+            "*" in arg for arg in container_args
+        )
 
         if has_force and has_volumes and is_multiple:
             danger_level = DangerLevel.CRITICAL
@@ -135,13 +160,14 @@ class DockerRmRule(Rule):
                 "Data in volumes will be permanently lost!"
             )
             suggestion = "Remove the -v/--volumes flag to preserve volume data."
-            safe_alternative = command.raw.replace(
-                "-v", "").replace("--volumes", "")
+            safe_alternative = command.raw.replace("-v", "").replace("--volumes", "")
 
         elif has_force:
             danger_level = DangerLevel.MEDIUM
             message = "Force removing will stop and remove the container immediately."
-            suggestion = "Stop the container first with 'docker stop' for graceful shutdown."
+            suggestion = (
+                "Stop the container first with 'docker stop' for graceful shutdown."
+            )
             safe_alternative = f"docker stop {' '.join(container_args)}"
 
         else:
@@ -167,10 +193,7 @@ class DockerRmiRule(Rule):
 
     def matches(self, command: ParsedCommand) -> bool:
         """Check if command is docker rmi."""
-        return (
-            command.command == "docker"
-            and "rmi" in command.args
-        )
+        return command.command == "docker" and "rmi" in command.args
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze docker rmi for dangers."""
@@ -178,8 +201,7 @@ class DockerRmiRule(Rule):
 
         # Check if removing multiple images
         image_args = [arg for arg in command.args if arg != "rmi"]
-        is_multiple = len(image_args) > 1 or any(
-            "*" in arg for arg in image_args)
+        is_multiple = len(image_args) > 1 or any("*" in arg for arg in image_args)
 
         if has_force and is_multiple:
             danger_level = DangerLevel.HIGH
@@ -188,8 +210,7 @@ class DockerRmiRule(Rule):
                 "This could break running applications!"
             )
             suggestion = "Remove the -f/--force flag and handle used images manually."
-            safe_alternative = command.raw.replace(
-                "-f", "").replace("--force", "")
+            safe_alternative = command.raw.replace("-f", "").replace("--force", "")
 
         elif has_force:
             danger_level = DangerLevel.MEDIUM
@@ -198,12 +219,13 @@ class DockerRmiRule(Rule):
                 "This could break running containers!"
             )
             suggestion = "Remove the -f flag to see if image is in use."
-            safe_alternative = command.raw.replace(
-                "-f", "").replace("--force", "")
+            safe_alternative = command.raw.replace("-f", "").replace("--force", "")
 
         elif is_multiple:
             danger_level = DangerLevel.MEDIUM
-            message = "This will remove multiple Docker images. Make sure they're not needed."
+            message = (
+                "This will remove multiple Docker images. Make sure they're not needed."
+            )
             suggestion = "Use 'docker images' to review images before removing."
             safe_alternative = None
 
@@ -238,18 +260,37 @@ class DockerVolumePruneRule(Rule):
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze docker volume prune for dangers."""
+
         has_force = "-f" in command.flags or "--force" in command.flags
 
-        danger_level = DangerLevel.CRITICAL
-        message = (
+        # What the command does is always dangerous
+        base_message = (
             "This will permanently delete ALL unused Docker volumes and their data. "
             "Volume data cannot be recovered! This includes volumes that might be needed later."
         )
-        suggestion = (
+
+        base_suggestion = (
             "List volumes first with 'docker volume ls' and remove specific ones. "
-            "Or backup important data before pruning."
+            "Or back up important data before pruning."
         )
-        safe_alternative = "docker volume ls"
+
+        base_safe = "docker volume ls"
+
+        # Without --force, user is at least protected by confirmation
+        if has_force:
+            danger_level = DangerLevel.CRITICAL
+            message = (
+                base_message
+                + " The --force flag skips the confirmation prompt, increasing the risk of accidental data loss."
+            )
+            suggestion = "Remove --force so you can review what will be deleted first."
+            safe_alternative = command.raw.replace("-f", "").replace("--force", "")
+
+        else:
+            danger_level = DangerLevel.HIGH
+            message = base_message
+            suggestion = base_suggestion
+            safe_alternative = base_safe
 
         return RuleMatch(
             rule_name=self.name,

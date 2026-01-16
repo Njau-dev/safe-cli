@@ -16,7 +16,7 @@ class DisplayFormatter:
     def __init__(self, console: Console) -> None:
         """
         Initialize display formatter.
-        
+
         Args:
             console: Rich console for output
         """
@@ -25,14 +25,15 @@ class DisplayFormatter:
     def display_analysis(self, result: AnalysisResult, dry_run: bool = False) -> None:
         """
         Display complete analysis results.
-        
+
         Args:
             result: Analysis result to display
             dry_run: Whether this is a dry run
         """
         if dry_run:
             self.console.print(
-                "\n[bold cyan]🔍 Dry Run Mode - Analysis Only[/bold cyan]\n")
+                "\n[bold cyan]🔍 Dry Run Mode - Analysis Only[/bold cyan]\n"
+            )
 
         # Command and danger level
         self._display_header(result)
@@ -62,8 +63,7 @@ class DisplayFormatter:
     def _display_warnings(self, result: AnalysisResult) -> None:
         """Display warning messages."""
         if result.danger_level == DangerLevel.SAFE:
-            self.console.print(
-                "[green]✅ No safety concerns detected.[/green]\n")
+            self.console.print("[green]✅ No safety concerns detected.[/green]\n")
             return
 
         danger_color = result.danger_level.color
@@ -79,12 +79,14 @@ class DisplayFormatter:
             self.console.print(panel)
         else:
             self.console.print(
-                f"[{danger_color}]⚠️  {result.primary_warning}[/{danger_color}]")
+                f"[{danger_color}]⚠️  {result.primary_warning}[/{danger_color}]"
+            )
 
         # Additional warnings if any
         if len(result.all_warnings) > 1:
             self.console.print(
-                f"\n[bold {danger_color}]Additional Concerns:[/bold {danger_color}]")
+                f"\n[bold {danger_color}]Additional Concerns:[/bold {danger_color}]"
+            )
             for warning in result.all_warnings[1:]:
                 self.console.print(f"  • {warning}")
 
@@ -107,7 +109,7 @@ class DisplayFormatter:
     def display_comparison(self, original: str, alternative: str) -> None:
         """
         Display side-by-side comparison of original and alternative.
-        
+
         Args:
             original: Original command
             alternative: Safe alternative
@@ -128,8 +130,7 @@ class DisplayFormatter:
     def display_execution_complete(self, success: bool) -> None:
         """Display execution completion status."""
         if success:
-            self.console.print(
-                "[green]✅ Command completed successfully.[/green]\n")
+            self.console.print("[green]✅ Command completed successfully.[/green]\n")
         else:
             self.console.print("[red]❌ Command failed.[/red]\n")
 

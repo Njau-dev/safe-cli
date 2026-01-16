@@ -74,7 +74,7 @@ class RuleRegistry:
     def register(self, rule: Rule) -> None:
         """
         Register a new rule.
-        
+
         Args:
             rule: Rule to register
         """
@@ -83,18 +83,17 @@ class RuleRegistry:
 
         # Check for duplicate names
         if any(r.name == rule.name for r in self._rules):
-            raise ValueError(
-                f"Rule with name '{rule.name}' already registered")
+            raise ValueError(f"Rule with name '{rule.name}' already registered")
 
         self._rules.append(rule)
 
     def unregister(self, rule_name: str) -> bool:
         """
         Unregister a rule by name.
-        
+
         Args:
             rule_name: Name of rule to unregister
-            
+
         Returns:
             True if rule was found and removed, False otherwise
         """
@@ -107,10 +106,10 @@ class RuleRegistry:
     def get_rule(self, rule_name: str) -> Optional[Rule]:
         """
         Get a rule by name.
-        
+
         Args:
             rule_name: Name of rule to get
-            
+
         Returns:
             Rule if found, None otherwise
         """
@@ -122,7 +121,7 @@ class RuleRegistry:
     def get_all_rules(self) -> List[Rule]:
         """
         Get all registered rules.
-        
+
         Returns:
             List of all rules
         """
@@ -131,10 +130,10 @@ class RuleRegistry:
     def find_matching_rules(self, command: ParsedCommand) -> List[Rule]:
         """
         Find all rules that match the command.
-        
+
         Args:
             command: Parsed command to check
-            
+
         Returns:
             List of matching rules
         """
@@ -143,10 +142,10 @@ class RuleRegistry:
     def analyze_command(self, command: ParsedCommand) -> List[RuleMatch]:
         """
         Analyze command against all matching rules.
-        
+
         Args:
             command: Parsed command to analyze
-            
+
         Returns:
             List of rule matches
         """
@@ -156,10 +155,10 @@ class RuleRegistry:
     def get_highest_danger_level(self, command: ParsedCommand) -> DangerLevel:
         """
         Get the highest danger level from all matching rules.
-        
+
         Args:
             command: Parsed command to analyze
-            
+
         Returns:
             Highest danger level found, or SAFE if no rules match
         """

@@ -1,12 +1,7 @@
 """
-Docstring for safe_cli.rules.system
-"""
-"""
 System-level command safety rules.
 """
 
-
-from typing import Optional
 from safe_cli.core.parser import ParsedCommand
 from safe_cli.rules.base import Rule, RuleMatch
 from safe_cli.utils.constants import DANGEROUS_PATHS, DangerLevel
@@ -28,13 +23,11 @@ class SudoRule(Rule):
         actual_cmd = command.args[0] if command.args else ""
 
         # Check for dangerous command combinations
-        dangerous_commands = ["rm", "dd", "mkfs",
-                              "fdisk", "parted", "chmod", "chown"]
+        dangerous_commands = ["rm", "dd", "mkfs", "fdisk", "parted", "chmod", "chown"]
         is_dangerous_cmd = actual_cmd in dangerous_commands
 
         # Check if modifying system paths (exclude /dev/zero, /dev/null which are safe sources)
-        safe_dev_paths = ["/dev/zero", "/dev/null",
-                          "/dev/random", "/dev/urandom"]
+        safe_dev_paths = ["/dev/zero", "/dev/null", "/dev/random", "/dev/urandom"]
         has_system_path = any(
             any(path in arg for path in DANGEROUS_PATHS)
             and not any(safe in arg for safe in safe_dev_paths)
@@ -126,7 +119,9 @@ class DdRule(Rule):
                 safe_alternative = None
         else:
             danger_level = DangerLevel.LOW
-            message = "dd command detected. Make sure input/output parameters are correct."
+            message = (
+                "dd command detected. Make sure input/output parameters are correct."
+            )
             suggestion = None
             safe_alternative = None
 
@@ -151,14 +146,17 @@ class KillRule(Rule):
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze kill command for dangers."""
-        has_9 = "-9" in command.flags or "-KILL" in command.flags or "-SIGKILL" in command.flags
+        has_9 = (
+            "-9" in command.flags
+            or "-KILL" in command.flags
+            or "-SIGKILL" in command.flags
+        )
         is_killall = command.command == "killall"
 
         # Check for dangerous process names
         dangerous_processes = ["init", "systemd", "launchd", "ssh", "sshd"]
         targets = command.args if is_killall else []
-        has_dangerous_target = any(
-            proc in dangerous_processes for proc in targets)
+        has_dangerous_target = any(proc in dangerous_processes for proc in targets)
 
         if has_9 and has_dangerous_target:
             danger_level = DangerLevel.CRITICAL
@@ -167,8 +165,11 @@ class KillRule(Rule):
                 "This will immediately terminate the process without cleanup."
             )
             suggestion = "Don't kill critical system processes. If you must, try without -9 first."
-            safe_alternative = command.raw.replace(
-                "-9", "").replace("-KILL", "").replace("-SIGKILL", "")
+            safe_alternative = (
+                command.raw.replace("-9", "")
+                .replace("-KILL", "")
+                .replace("-SIGKILL", "")
+            )
 
         elif has_9 and is_killall:
             danger_level = DangerLevel.HIGH
@@ -177,8 +178,11 @@ class KillRule(Rule):
                 "They won't have a chance to clean up or save state."
             )
             suggestion = "Try without -9 first to allow graceful termination."
-            safe_alternative = command.raw.replace(
-                "-9", "").replace("-KILL", "").replace("-SIGKILL", "")
+            safe_alternative = (
+                command.raw.replace("-9", "")
+                .replace("-KILL", "")
+                .replace("-SIGKILL", "")
+            )
 
         elif has_9:
             danger_level = DangerLevel.MEDIUM
@@ -187,8 +191,11 @@ class KillRule(Rule):
                 "The process will be terminated immediately without cleanup."
             )
             suggestion = "Try regular kill first (SIGTERM) to allow graceful shutdown."
-            safe_alternative = command.raw.replace(
-                "-9", "").replace("-KILL", "").replace("-SIGKILL", "")
+            safe_alternative = (
+                command.raw.replace("-9", "")
+                .replace("-KILL", "")
+                .replace("-SIGKILL", "")
+            )
 
         elif is_killall:
             danger_level = DangerLevel.MEDIUM
@@ -198,7 +205,9 @@ class KillRule(Rule):
 
         else:
             danger_level = DangerLevel.LOW
-            message = "This will send SIGTERM to the process, allowing graceful shutdown."
+            message = (
+                "This will send SIGTERM to the process, allowing graceful shutdown."
+            )
             suggestion = None
             safe_alternative = None
 
@@ -263,10 +272,12 @@ class MkfsRule(Rule):
 
     def matches(self, command: ParsedCommand) -> bool:
         """Check if command is mkfs or variants."""
-        return (
-            command.command.startswith("mkfs")
-            or command.command in ["mkfs.ext4", "mkfs.ext3", "mkfs.ntfs", "mkfs.vfat"]
-        )
+        return command.command.startswith("mkfs") or command.command in [
+            "mkfs.ext4",
+            "mkfs.ext3",
+            "mkfs.ntfs",
+            "mkfs.vfat",
+        ]
 
     def analyze(self, command: ParsedCommand) -> RuleMatch:
         """Analyze mkfs command for dangers."""

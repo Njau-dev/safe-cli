@@ -22,7 +22,9 @@ class TestCommandAnalyzer:
         """Create analyzer instance."""
         return CommandAnalyzer()
 
-    def test_analyzer_initializes_with_registry(self, analyzer: CommandAnalyzer) -> None:
+    def test_analyzer_initializes_with_registry(
+        self, analyzer: CommandAnalyzer
+    ) -> None:
         """Test that analyzer initializes with a registry."""
         assert analyzer.registry is not None
         assert isinstance(analyzer.registry, RuleRegistry)
@@ -168,8 +170,7 @@ class TestCommandAnalyzer:
         result = analyzer.analyze(cmd)
 
         # Check for uniqueness
-        assert len(result.safe_alternatives) == len(
-            set(result.safe_alternatives))
+        assert len(result.safe_alternatives) == len(set(result.safe_alternatives))
 
     def test_analyze_batch(
         self, parser: CommandParser, analyzer: CommandAnalyzer
@@ -235,7 +236,9 @@ class TestCommandAnalyzer:
         # Test properties
         assert not result.is_safe
         assert result.requires_confirmation
-        assert result.has_suggestions or not result.has_suggestions  # Just check it works
+        assert (
+            result.has_suggestions or not result.has_suggestions
+        )  # Just check it works
         assert result.has_safe_alternatives or not result.has_safe_alternatives
 
     def test_highest_danger_level_selected(
@@ -267,8 +270,7 @@ class TestAnalysisResultProperties:
         """Test is_safe property for SAFE level."""
         from safe_cli.core.parser import ParsedCommand
 
-        cmd = ParsedCommand(
-            "echo test", ["echo", "test"], "echo", ["test"], [])
+        cmd = ParsedCommand("echo test", ["echo", "test"], "echo", ["test"], [])
         result = AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.SAFE,
@@ -302,8 +304,7 @@ class TestAnalysisResultProperties:
         """Test is_safe property for HIGH level."""
         from safe_cli.core.parser import ParsedCommand
 
-        cmd = ParsedCommand(
-            "rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
+        cmd = ParsedCommand("rm -rf /", ["rm", "-rf", "/"], "rm", ["/"], ["-rf"])
         result = AnalysisResult(
             command=cmd,
             danger_level=DangerLevel.HIGH,

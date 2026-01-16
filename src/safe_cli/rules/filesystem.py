@@ -248,7 +248,11 @@ class ChmodRule(Rule):
         has_dangerous_perm = any(perm in args for perm in dangerous_perms)
 
         # Check for system paths
-        targets = [arg for arg in args if not arg.startswith("-") and arg not in dangerous_perms]
+        targets = [
+            arg
+            for arg in args
+            if not arg.startswith("-") and arg not in dangerous_perms
+        ]
         has_dangerous_path = any(_path_is_dangerous(path) for path in targets)
 
         if has_dangerous_perm and has_recursive and has_dangerous_path:

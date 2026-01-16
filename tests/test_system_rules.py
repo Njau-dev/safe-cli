@@ -2,7 +2,6 @@
 Tests for system-level safety rules.
 """
 
-from unittest import result
 import pytest
 from safe_cli.core.parser import CommandParser
 from safe_cli.rules.system import (
@@ -30,12 +29,16 @@ class TestSudoRule:
         cmd = parser.parse("sudo rm file")
         assert rule.matches(cmd)
 
-    def test_sudo_dangerous_cmd_system_path_critical(self, parser: CommandParser, rule: SudoRule) -> None:
+    def test_sudo_dangerous_cmd_system_path_critical(
+        self, parser: CommandParser, rule: SudoRule
+    ) -> None:
         cmd = parser.parse("sudo rm -rf /usr")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.CRITICAL
 
-    def test_sudo_dangerous_cmd_high(self, parser: CommandParser, rule: SudoRule) -> None:
+    def test_sudo_dangerous_cmd_high(
+        self, parser: CommandParser, rule: SudoRule
+    ) -> None:
         cmd = parser.parse("sudo dd if=/dev/zero of=test")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
@@ -102,7 +105,9 @@ class TestKillRule:
         cmd = parser.parse("killall firefox")
         assert rule.matches(cmd)
 
-    def test_kill_9_system_process_critical(self, parser: CommandParser, rule: KillRule) -> None:
+    def test_kill_9_system_process_critical(
+        self, parser: CommandParser, rule: KillRule
+    ) -> None:
         cmd = parser.parse("killall -9 systemd")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.CRITICAL
@@ -157,7 +162,9 @@ class TestShutdownRule:
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.HIGH
 
-    def test_shutdown_delayed_medium(self, parser: CommandParser, rule: ShutdownRule) -> None:
+    def test_shutdown_delayed_medium(
+        self, parser: CommandParser, rule: ShutdownRule
+    ) -> None:
         cmd = parser.parse("shutdown +10")
         result = rule.analyze(cmd)
         assert result.danger_level == DangerLevel.MEDIUM
